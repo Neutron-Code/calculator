@@ -1,4 +1,4 @@
 node_modules/
-./src/styles.css
+**/styles.css
 tailwind.config.js
 *.hintrc
