@@ -14,6 +14,7 @@ let validationArray = [], preZeroAddedString, postZeroAddedString;
 let openParenthesisCount = 0;
 let operatorTracker = [];
 let initializer = false;
+let finalClicked = false;
 
 
 
@@ -34,6 +35,8 @@ class Calculator{
         this.transitionTrigger = [];
         this.crntScreen.classList.replace("text-2xl", "text-4xl");
         this.crntScreen.classList.replace("sm:text-2xl", "sm:text-4xl");
+        this.crntScreen.style.color = 'rgb(203 203 203)';
+        this.prevScreen.style.color = ''
 
 
         operatorTracker = [];
@@ -41,6 +44,8 @@ class Calculator{
         preZeroAddedString , postZeroAddedString = '';
         openParenthesisCount = 0;
         document.querySelector('#invalid').classList.remove('invalidOpacity');
+        finalClicked = false;
+        previousScreen.textContent = '0'
     }
 
 
@@ -56,6 +61,7 @@ class Calculator{
             validationArray = [];
             this.maximumCount = [];
             openParenthesisCount = 0;
+            finalClicked = false;
             document.querySelector('#invalid').classList.remove('invalidOpacity');
         }
 
@@ -68,6 +74,13 @@ class Calculator{
 
 
     appendNumber(number){
+        if(finalClicked){
+            this.currentText = '';
+            this.maximumCount = [];
+            this.transitionTrigger = [];
+            finalClicked = false;
+        }
+
         const { transitionTrigger, crntScreen, maximumCount } = this;
         operatorTracker = [];
         if(transitionTrigger.length >= 10){
@@ -96,9 +109,15 @@ class Calculator{
         
         this.maximumCount = [];
         
-        this.currentText = initializer ? 
-        (postZeroAddedString) : 
-        (this.currentText.toString()) + operation.toString();
+        if(finalClicked){
+            this.currentText = this.crntScreen.textContent + operation;
+            this.transitionTrigger = [];
+            finalClicked = false;
+        }else{
+            this.currentText = initializer ? 
+            (postZeroAddedString) : 
+            (this.currentText.toString()) + operation.toString();
+        }
         initializer = false;
     }
 
@@ -143,7 +162,7 @@ const numberAppender = (button) => {
     if(currentScreen.textContent.slice(-1) === '%'){
         calculator.appendNumber(`×${button.children[0].innerText}`);
         calculator.updateDisplay();
-        calculator.updateEntries(button.childre[0].innerText)
+        calculator.updateEntries(button.children[0].innerText)
     }else{
         validationArray.push(button.children[0].innerText);
         calculator.appendNumber(button.children[0].innerText);
@@ -204,6 +223,19 @@ clearAllBtn.addEventListener('click', () => {
 deleteBtn.addEventListener('click', () => {
     calculator.delete();
     calculator.updateDisplay();
+
+    const regex = /\b(\d{1,3}(,\d{3})*(\.\d+)?)\b/g
+    let result = currentScreen.textContent.replace(regex, function(match, p1) {
+        return p1.replace(/,/g, '');
+    });
+    const answer = evaluateExpression(result);
+
+    if(answer){
+        previousScreen.classList.replace('opacity-0', 'opacity-100')
+        previousScreen.innerHTML = answer;
+    }else{
+        previousScreen.classList.add('opacity-0');
+    };
 })
 
 //Parenthesis Button Event Listener
@@ -343,4 +375,197 @@ window.addEventListener('keypress', (e) => {
             document.querySelector('#invalid').classList.add('invalidOpacity')
         }
     }
+
+    if(!isNaN(e.key) || e.key === '-+×÷%'.includes(e.key)){
+        const regex = /\b(\d{1,3}(,\d{3})*(\.\d+)?)\b/g
+        let result = currentScreen.textContent.replace(regex, function(match, p1) {
+            return p1.replace(/,/g, '');
+        });
+        const answer = evaluateExpression(result);
+
+        if(answer){
+            previousScreen.classList.replace('opacity-0', 'opacity-100')
+            previousScreen.innerHTML = answer;
+        }else{
+            previousScreen.classList.add('opacity-0');
+        };
+    }
+    
+})
+
+//Evaluation OF Answer;
+function evaluateExpression(expression) {
+    const precedence = {
+        '+': 1,
+        '-': 1,
+        '×': 2,
+        '÷': 2,
+        '%': 2,
+        '(': 0
+    };
+
+    const operators = [];
+    const operands = [];
+
+    function applyOperator() {
+        const operator = operators.pop();
+        const b = operands.pop();
+        const a = operands.pop();
+
+        switch (operator) {
+            case '+':
+                operands.push(a + b);
+                break;
+            case '-':
+                operands.push(a - b);
+                break;
+            case '×':
+                operands.push(a * b);
+                break;
+            case '÷':
+                operands.push(a / b);
+                break;
+
+            case '%':
+                operands.push(b / 100);
+                break;
+        }
+    }
+
+    const tokens = expression.match(/\d+(\.\d+)?|\+|\-|\×|\÷|\%|\(|\)/g);
+
+    for (const token of tokens) {
+        if (!isNaN(token)) {
+            operands.push(parseFloat(token));
+        } else if (token === '(') {
+            operators.push(token);
+        } else if (token === ')') {
+            while (operators.length && operators[operators.length - 1] !== '(') {
+                applyOperator();
+            }
+            operators.pop();
+        } else {
+            while (operators.length && precedence[operators[operators.length - 1]] >= precedence[token]) {
+                applyOperator();
+            }
+            operators.push(token);
+        }
+    }
+
+    while (operators.length) {
+        applyOperator();
+    }
+
+    return operands.pop();
+}
+
+
+const allElems = document.querySelectorAll("[data-operator], [data-number], [data-percentage], [data-parenthesis]");
+allElems.forEach(elem => {
+    elem.addEventListener('click', () => {
+        currentScreen.style.color = 'rgb(203 203 203)';
+        const regex = /\b(\d{1,3}(,\d{3})*(\.\d+)?)\b/g
+        let result = currentScreen.textContent.replace(regex, function(match, p1) {
+            return p1.replace(/,/g, '');
+        });
+        const answer = evaluateExpression(result);
+
+        if(!(isNaN(answer)) || answer === 0){
+            previousScreen.classList.replace('opacity-0', 'opacity-100')
+            previousScreen.innerHTML = answer;
+        }else if(isNaN(answer)){
+            previousScreen.classList.add('opacity-0');
+            previousScreen.textContent = '0'
+            previousScreen.classList.replace('opacity-100', 'opacity-0');
+        };
+    })
+})
+
+// Equal Button
+const finalAnswerDisplay = () => {
+    if('+-%×÷'.includes(currentScreen.textContent.slice(-1))) return;
+
+    if(previousScreen.textContent !== '' || previousScreen.textContent === '0'){
+        currentScreen.classList.replace('opacity-100', 'opacity-0');
+        previousScreen.classList.add('upAnimate');
+        currentScreen.style.color = 'rgb(67 214 54)';
+        previousScreen.classList.replace('text-2xl', 'text-4xl')
+        currentScreen.textContent = previousScreen.textContent
+
+        previousScreen.addEventListener('transitionend', () => {
+            previousScreen.classList.remove('upAnimate');
+            previousScreen.classList.replace('text-4xl', 'text-2xl');
+            previousScreen.textContent = '0';
+            previousScreen.classList.replace('opacity-100', 'opacity-0')
+            currentScreen.classList.replace('opacity-0', 'opacity-100');
+        })
+    }
+
+    finalClicked = true;
+}
+
+equalBtn.addEventListener('click', () => {
+    vibrationOnClick();
+    finalAnswerDisplay();
+})
+
+//Animation Initialization 
+numbers.forEach(value => {
+    value.addEventListener('click', () => {
+        value.children[0].classList.add('numberTextScaleAnimation')
+    })
+})
+
+operators.forEach(value => {
+    value.addEventListener('click', e => {
+        value.children[0].classList.add('operatorTextScaleAnimation')
+    })
+})
+
+
+// Numbers Animation
+numbers.forEach(value => {
+    value.addEventListener('touchstart', e => {
+        value.style.backgroundColor = '#444444'
+    })
+});
+
+numbers.forEach(value => {
+    value.addEventListener('touchend', e => {
+        value.children[0].classList.remove('numberTextScaleAnimation')
+        value.style.backgroundColor = '#1a1a1a'
+    })
+})
+
+
+
+// Operators Animation
+operators.forEach(elem => {
+    elem.addEventListener('touchstart', e => {
+        elem.style.backgroundColor = '#1a1a1a';
+    })
+})
+
+operators.forEach(elem => {
+    elem.addEventListener('touchend', e => {
+        elem.children[0].classList.remove('operatorTextScaleAnimation')
+        elem.style.backgroundColor = '#303030';
+    })
+})
+
+
+
+// Clear All Animation
+
+clearAllBtn.addEventListener('click', e => {
+    clearAllBtn.children[0].classList.add('numberTextScaleAnimation');
+})
+
+clearAllBtn.addEventListener('touchstart', e => {
+    clearAllBtn.style.backgroundColor = '#1a1a1a';
+})
+
+clearAllBtn.addEventListener('touchend', e => {
+    clearAllBtn.children[0].classList.remove('numberTextScaleAnimation');
+    clearAllBtn.style.backgroundColor = '#303030';
 })

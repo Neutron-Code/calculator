@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale-1.0, user-scalable=no"/>
     <title>Calculator</title>
     <script src="./logic.js" defer></script>
-    <script src="./animation.js" defer></script>
     <style>
       *{
         -webkit-user-select: none;
@@ -45,6 +44,14 @@
 
       div[data-operator], div[data-clearAll], div[data-parenthesis], div[data-percentage]{
         background-color: #303030;
+      }
+
+      #p_screen{
+        transition: font-size 200ms linear, transform 200ms linear;
+      }
+
+      .upAnimate{
+        transform: translateY(-108px);
       }
 
       @keyframes scaleTextAnimationNumber{
@@ -96,14 +103,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
   </head>
-  <body class="overflow-x-hidden bg-black text-white flex items-center">
+  <body class="overflow-x-hidden bg-black text-white flex flex-col items-center">
+    <div class="py-4 px-3 text-justify"><strong>[</strong> Beta Version : 1.00 <strong>]</strong> <strong>UX Trail Version</strong> : 1.00 <br>Beware of some unexpected behvaiour. Site under Developement. Scroll for better View. Use Abusive words if you have a bad expeirence. Jyada bhi Galiya mat dena dosto 😅</div>
     <div
       class="container mx-auto border-solid max-w-full sm:max-w-80 px-2 py-5 sm:py-0 sm:border-[1px] my-2 border-gray-800"
     >
       <div class="flex flex-col px-2">
         <div
-          class="text-end text-4xl sm:text-4xl text-wrap break-all px-3 py-6 sm:py-3 font-poppins break-words border-0" id="c_screen">0</div>
-        <div class="text-end mt-11 text-lg px-3 sm:mt-4 text-gray-500 font-poppins break-words" id="p_screen">0</div>
+          class="text-end text-4xl sm:text-4xl text-wrap break-all px-3 py-6 sm:py-3 font-poppins break-words border-0 opacity-100" id="c_screen">0</div>
+        <div class="text-end mt-11 text-2xl px-3 sm:mt-4 text-stone-400 font-poppins break-words" id="p_screen">0</div>
 
         <div class="flex justify-between py-4 mt-6 px-4 mb-3 sm:mt-3 sm:mb-0">
           <div class="flex gap-8">
