@@ -236,6 +236,10 @@ deleteBtn.addEventListener('click', () => {
     }else{
         previousScreen.classList.add('opacity-0');
     };
+
+    if('-×÷'.includes(currentScreen.textContent.slice(-1))){
+        previousScreen.classList.replace('opacity-100', 'opacity-0')
+    }
 })
 
 //Parenthesis Button Event Listener
@@ -469,6 +473,7 @@ allElems.forEach(elem => {
             return p1.replace(/,/g, '');
         });
         const answer = evaluateExpression(result);
+        console.log(answer)
 
         if(!(isNaN(answer)) || answer === 0){
             previousScreen.classList.replace('opacity-0', 'opacity-100')
@@ -478,6 +483,11 @@ allElems.forEach(elem => {
             previousScreen.textContent = '0'
             previousScreen.classList.replace('opacity-100', 'opacity-0');
         };
+
+        if('-×÷'.includes(currentScreen.textContent.slice(-1))){
+            console.log('Hey')
+            previousScreen.classList.replace('opacity-100', 'opacity-0') || previousScreen.classList.add('opacity-0')
+        }
     })
 })
 

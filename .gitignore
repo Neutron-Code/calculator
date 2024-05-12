@@ -2,3 +2,5 @@ node_modules/
 **/styles.css
 tailwind.config.js
 *.hintrc
+src/logic.js/
+src/main.css/
