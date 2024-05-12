@@ -405,7 +405,7 @@ function evaluateExpression(expression) {
     };
 
     const operators = [];
-    const operands = [];
+    const operands = [0];
 
     function applyOperator() {
         const operator = operators.pop();
